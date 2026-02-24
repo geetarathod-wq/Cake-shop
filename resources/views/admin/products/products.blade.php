@@ -1,56 +1,36 @@
-@extends('layouts.admin')
+@extends('admin.layouts.app')
+
+@section('title', $category->name . ' Collection')
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 style="color: #2C1810;">Manage Products</h2>
-    <a href="{{ route('products.create') }}" class="btn" style="background: #D4AF37; color: white;">+ Add Cake</a>
+    <h1 class="h3 fw-bold">{{ $category->name }} Collection</h1>
+    <a href="{{ route('admin.categories.index') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Categories
+    </a>
 </div>
 
-<div class="card shadow-sm border-0">
-    <div class="card-body p-0">
-        <table class="table mb-0">
-            <thead style="background: #2C1810; color: #D4AF37;">
-                <tr>
-                    <th class="ps-4">Image</th>
-                    <th>Name</th>
-                    <th>Category</th>
-                    <th>Price</th>
-                    <th class="text-center">Debug Info</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($products as $product)
-                <tr class="align-middle">
-                    <td class="ps-4">
-                        <div style="width: 80px; height: 80px; overflow: hidden; border: 1px solid #eee;">
-                            <img src="{{ asset('storage/' . $product->image) }}" 
-                                 alt="{{ $product->name }}" 
-                                 style="width: 100%; height: 100%; object-fit: cover;">
-                        </div>
-                    </td>
-                    <td class="fw-bold">{{ $product->name }}</td>
-                    <td>
-                        <span class="badge bg-light text-dark border">
-                            {{ $product->category->name ?? 'Uncategorized' }}
-                        </span>
-                    </td>
-                    <td>₹{{ number_format($product->price, 2) }}</td>
-                    <td>
-                        <small class="text-muted d-block" style="font-size: 0.7rem;">
-                            <strong>DB Value:</strong> {{ $product->image }}
-                        </small>
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
+<div class="row">
+    @forelse($products as $product)
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+            <img src="{{ asset('storage/'.$product->image) }}" class="card-img-top" alt="{{ $product->name }}" style="height: 200px; object-fit: cover;">
+            <div class="card-body">
+                <h5 class="card-title">{{ $product->name }}</h5>
+                <p class="card-text">₹{{ number_format($product->price, 2) }}</p>
+                <span class="badge bg-{{ $product->is_active ? 'success' : 'secondary' }}">
+                    {{ $product->is_active ? 'Active' : 'Inactive' }}
+                </span>
+            </div>
+            <div class="card-footer bg-white border-0">
+                <a href="{{ route('admin.products.edit', $product->id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+            </div>
+        </div>
     </div>
+    @empty
+    <div class="col-12 text-center py-5">
+        <p class="text-muted">No products in this category.</p>
+    </div>
+    @endforelse
 </div>
-
-@if($products->isEmpty())
-<div class="text-center py-5">
-    <p class="text-muted italic serif">Your atelier is currently empty. Add your first masterpiece!</p>
-</div>
-@endif
-
 @endsection

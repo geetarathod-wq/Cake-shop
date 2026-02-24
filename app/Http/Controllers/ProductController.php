@@ -9,12 +9,22 @@ class ProductController extends Controller
 {
     public function index()
     {
-        // Fetch all products with their categories
         $products = Product::with('category')->get();
 
-        // Debug: uncomment the next line to see what's being fetched
-        // dd($products);
+        // Get featured products (is_featured = true)
+        $featuredProducts = Product::with('category')->where('is_featured', true)->get();
 
-        return view('welcome', compact('products'));
+        // Fallback if no featured products exist
+        if ($featuredProducts->isEmpty()) {
+            $featuredProducts = $products->take(6);
+        }
+
+        return view('welcome', compact('products', 'featuredProducts'));
+    }
+
+    public function show($slug)
+    {
+        $product = Product::where('slug', $slug)->with('category')->firstOrFail();
+        return view('product.show', compact('product'));
     }
 }

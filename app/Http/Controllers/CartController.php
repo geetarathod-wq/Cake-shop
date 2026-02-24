@@ -20,6 +20,12 @@ class CartController extends Controller
      */
     public function addToCart(Request $request, $id)
     {
+        // Validate weight and quantity
+        $request->validate([
+            'weight'   => 'nullable|numeric|min:0.5|max:5',
+            'quantity' => 'nullable|integer|min:1',
+        ]);
+
         $product = Product::findOrFail($id);
         $cart = session()->get('cart', []);
 
@@ -49,12 +55,40 @@ class CartController extends Controller
      */
     public function update(Request $request)
     {
+        // Validate quantity
+        $request->validate([
+            'quantity' => 'required|integer|min:1',
+        ]);
+
         $cart = session()->get('cart', []);
         $id = $request->id;
         $quantity = $request->quantity;
 
         if (isset($cart[$id])) {
             $cart[$id]['quantity'] = $quantity;
+            session()->put('cart', $cart);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Update cart weight (AJAX)
+     */
+    public function updateWeight(Request $request)
+    {
+        // Validate weight
+        $request->validate([
+            'weight' => 'required|numeric|min:0.5|max:5',
+        ]);
+
+        $cart = session()->get('cart', []);
+        $id = $request->id; // cart key (productId-weight)
+        $newWeight = $request->weight;
+
+        if (isset($cart[$id])) {
+            // Update weight
+            $cart[$id]['weight'] = $newWeight;
             session()->put('cart', $cart);
         }
 

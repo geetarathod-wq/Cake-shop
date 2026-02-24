@@ -66,7 +66,7 @@ class CategoryController extends Controller
         return back()->with('success', 'Category deleted.');
     }
 
-        public function products($id)
+    public function products($id)
     {
         $category = Category::findOrFail($id);
         $products = Product::where('category_id', $id)->get();

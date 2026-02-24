@@ -17,7 +17,8 @@ class ProductController extends Controller
     public function index()
     {
         $products = Product::with('category')->get();
-        return view('welcome', compact('products'));
+        $featuredProducts = Product::with('category')->where('is_featured', true)->get();
+        return view('welcome', compact('products', 'featuredProducts'));
     }
 
     /**
@@ -126,4 +127,10 @@ class ProductController extends Controller
         return redirect()->route('admin.products.index')
                          ->with('success', 'Product deleted successfully.');
     }
+
+    public function show($slug)
+{
+    $product = Product::where('slug', $slug)->with('category')->firstOrFail();
+    return view('product.show', compact('product'));
+}
 }
