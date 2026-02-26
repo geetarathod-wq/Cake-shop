@@ -2,63 +2,43 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Http\Controllers\CartController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Models\User;
 
 class AuthController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Show Login Form
-    |--------------------------------------------------------------------------
-    */
     public function showLogin()
     {
         return view('auth.login');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Show Register Form
-    |--------------------------------------------------------------------------
-    */
     public function showRegister()
     {
         return view('auth.register');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Register User
-    |--------------------------------------------------------------------------
-    */
     public function register(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:6|confirmed',
+            'email' => 'required|string|email|unique:users',
+            'password' => 'required|string|min:8|confirmed',
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password), // ✅ bcrypt
-            'is_admin' => 0, // default customer
+            'password' => Hash::make($request->password),
+            'is_admin' => false,
         ]);
 
         Auth::login($user);
-
         return redirect()->route('home');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Login User
-    |--------------------------------------------------------------------------
-    */
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -67,35 +47,27 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($credentials)) {
-
             $request->session()->regenerate();
 
-            // ✅ If Admin
-            if (Auth::user()->is_admin == 1) {
+            // Merge session cart into database cart
+            CartController::mergeSessionCartToDatabase(Auth::user());
+
+            if (Auth::user()->is_admin) {
                 return redirect()->route('admin.dashboard');
             }
-
-            // ✅ If Customer
             return redirect()->route('home');
         }
 
         return back()->withErrors([
-            'email' => 'Invalid credentials.',
-        ])->withInput();
+            'email' => 'The provided credentials do not match our records.',
+        ]);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Logout
-    |--------------------------------------------------------------------------
-    */
     public function logout(Request $request)
     {
         Auth::logout();
-
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-
-        return redirect()->route('home');
+        return redirect('/');
     }
 }

@@ -16,4 +16,13 @@ class CustomerOrderController extends Controller
 
         return view('customer.orders', compact('orders'));
     }
+
+    public function show($id)
+    {
+        $order = Order::where('user_id', auth()->id())
+                    ->with('items.product')
+                    ->findOrFail($id);
+        return view('customer.order-details', compact('order'));
+    }
+
 }

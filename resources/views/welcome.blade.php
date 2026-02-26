@@ -70,7 +70,7 @@
             transition: 0.3s;
         }
 
-        /* Floating cart (unchanged) */
+        /* Floating cart (updated) */
         .floating-cart {
             position: fixed;
             top: 30px;
@@ -455,9 +455,17 @@
     </div>
     @endif
 
+    <!-- Floating Cart with correct count -->
     <a href="{{ route('cart.index') }}" class="floating-cart">
         <i class="fa-solid fa-cart-shopping"></i>
-        @php $cartCount = session('cart') ? count(session('cart')) : 0; @endphp
+        @php
+            if (Auth::check()) {
+                $cart = Auth::user()->cart;
+                $cartCount = $cart ? $cart->items->sum('quantity') : 0;
+            } else {
+                $cartCount = session('cart') ? count(session('cart')) : 0;
+            }
+        @endphp
         <span class="cart-badge">{{ $cartCount }}</span>
     </a>
 

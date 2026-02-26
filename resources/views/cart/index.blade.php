@@ -30,7 +30,7 @@
     <h1 class="serif display-5 text-center mb-5">Your Selection</h1>
 
     @php
-        $cart = session('cart', []);
+        $cart = $cart ?? session('cart', []); // support both passed cart and session fallback
         $total = 0;
         foreach($cart as $item) {
             $total += $item['price'] * $item['weight'] * $item['quantity'];
@@ -57,7 +57,7 @@
                                 @php
                                     $subtotal = $details['price'] * $details['weight'] * $details['quantity'];
                                 @endphp
-                                <tr data-id="{{ $id }}">
+                                <tr data-id="{{ $id }}" data-item-id="{{ $details['id'] ?? '' }}">
                                     <td style="width: 100px;">
                                         <img src="{{ asset('storage/'.$details['image']) }}" 
                                             class="cart-item-img" 
@@ -167,42 +167,54 @@
 </div>
 
 <script type="text/javascript">
+    // Helper to get the correct ID (item-id if available, otherwise composite key)
+    function getItemId(element) {
+        var row = $(element).closest('tr');
+        return row.data('item-id') || row.data('id');
+    }
+
     // Update quantity (plus)
     $(".update-cart-plus").click(function (e) {
         e.preventDefault();
         var ele = $(this);
-        var qtyField = ele.closest("tr").find(".quantity");
+        var row = ele.closest("tr");
+        var qtyField = row.find(".quantity");
         var newQty = parseInt(qtyField.val()) + 1;
-        updateCart(ele.closest("tr").attr("data-id"), newQty);
+        var id = getItemId(ele);
+        updateCart(id, newQty);
     });
 
     // Update quantity (minus)
     $(".update-cart-minus").click(function (e) {
         e.preventDefault();
         var ele = $(this);
-        var qtyField = ele.closest("tr").find(".quantity");
+        var row = ele.closest("tr");
+        var qtyField = row.find(".quantity");
         var newQty = parseInt(qtyField.val()) - 1;
         if(newQty > 0) {
-            updateCart(ele.closest("tr").attr("data-id"), newQty);
+            var id = getItemId(ele);
+            updateCart(id, newQty);
         }
     });
 
     // Update weight
     $(".update-weight").change(function (e) {
         var ele = $(this);
-        var cartKey = ele.closest("tr").attr("data-id");
+        var row = ele.closest("tr");
         var newWeight = ele.val();
-        updateCartWeight(cartKey, newWeight);
+        var id = getItemId(ele);
+        updateCartWeight(id, newWeight);
     });
 
     // Remove item
     $(".remove-from-cart").click(function (e) {
         e.preventDefault();
         var ele = $(this);
-        var cartKey = ele.closest("tr").attr("data-id");
+        var row = ele.closest("tr");
+        var id = row.data('id'); // remove uses composite key or cart_item id directly
         if(confirm("Do you really want to remove this piece?")) {
             $.ajax({
-                url: "{{ url('/remove-from-cart') }}/" + cartKey,
+                url: "{{ url('/remove-from-cart') }}/" + id,
                 method: "DELETE",
                 data: {
                     _token: "{{ csrf_token() }}"
