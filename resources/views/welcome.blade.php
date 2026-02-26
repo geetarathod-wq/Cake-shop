@@ -9,7 +9,7 @@
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
 
-    <!-- Bootstrap (optional, used for layout) -->
+    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Swiper CSS -->
@@ -48,7 +48,7 @@
             color: var(--gold);
         }
 
-        /* Navbar (unchanged but with scroll effect) */
+        /* Navbar */
         .navbar {
             padding: 1.5rem 0;
             transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -70,7 +70,7 @@
             transition: 0.3s;
         }
 
-        /* Floating cart (updated) */
+        /* Floating cart */
         .floating-cart {
             position: fixed;
             top: 30px;
@@ -99,7 +99,7 @@
             font-size: 0.65rem;
         }
 
-        /* Split Hero Layout */
+        /* Hero Split */
         .hero-split {
             position: relative;
             height: 100vh;
@@ -109,7 +109,6 @@
             overflow: hidden;
         }
 
-        /* Right angled slider */
         .hero-split .hero-slider {
             position: absolute;
             top: 0;
@@ -131,38 +130,12 @@
             background-position: center;
         }
 
-        /* Left content */
         .hero-content {
             position: relative;
             z-index: 2;
         }
 
-        .slide-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.3);
-        }
-
-        .slide-content {
-            position: relative;
-            z-index: 2;
-            color: white;
-            text-align: center;
-            padding: 0 20px;
-        }
-
-        .slide-title {
-            font-size: 4.5rem;
-            line-height: 1.1;
-            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .slide-subtitle {
-            font-size: 1.2rem;
-            margin: 20px 0 30px;
-        }
-
-        /* Buttons (your existing btn-luxury extended) */
+        /* Buttons */
         .btn-luxury {
             background: var(--dark);
             color: var(--white);
@@ -182,18 +155,7 @@
             color: var(--dark);
         }
 
-        .btn-outline-light {
-            border: 2px solid white;
-            background: transparent;
-            color: white;
-        }
-
-        .btn-outline-light:hover {
-            background: white;
-            color: var(--dark);
-        }
-
-        /* Product cards (enhanced) */
+        /* Product cards */
         .product-card {
             background: var(--white);
             border-radius: 20px;
@@ -210,16 +172,14 @@
 
         .product-img-wrap {
             height: 250px;
-            /* uniform height */
             overflow: hidden;
-            border-radius: 20px 20px 0 0;
         }
 
         .product-img-wrap img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            object-position: center;
+            transition: 1.2s;
         }
 
         .product-card:hover img {
@@ -255,30 +215,93 @@
             margin-bottom: 15px;
         }
 
-        /* Footer (unchanged) */
+        /* Story Section */
+        .story-section {
+            padding: 100px 0;
+            background: var(--white);
+        }
+
+        .story-image {
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .story-image img {
+            width: 100%;
+            height: auto;
+            transition: transform 0.5s;
+        }
+
+        .story-image:hover img {
+            transform: scale(1.02);
+        }
+
+        .story-content {
+            padding: 40px;
+        }
+
+        .story-content h2 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+        }
+
+        .story-content p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #666;
+        }
+
+        /* Testimonials */
+        .testimonial-section {
+            padding: 80px 0;
+            background: var(--cream);
+        }
+
+        .testimonial-card {
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.03);
+            margin: 20px;
+        }
+
+        .testimonial-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 15px;
+        }
+
+        .testimonial-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .testimonial-role {
+            color: var(--gold);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .testimonial-text {
+            font-style: italic;
+            color: #555;
+            margin: 15px 0;
+        }
+
+        .stars {
+            color: var(--gold);
+        }
+
+        /* Footer */
         .luxury-footer {
             background-color: var(--dark);
             color: var(--white);
             padding: 80px 0 40px;
             margin-top: 100px;
-        }
-
-        /* ... keep all your existing footer styles ... */
-
-        .dropdown-menu {
-            border-radius: 0;
-            padding: 15px 0;
-            min-width: 220px;
-        }
-
-        .dropdown-item {
-            padding: 8px 25px;
-            transition: 0.2s;
-        }
-
-        .dropdown-item:hover {
-            background-color: var(--cream);
-            color: var(--gold);
         }
 
         .footer-brand {
@@ -297,13 +320,12 @@
         }
 
         .footer-link {
-            color: rgba(255, 255, 255, 0.6);
+            color: rgba(255,255,255,0.6);
             text-decoration: none;
             display: block;
             margin-bottom: 12px;
             font-size: 0.85rem;
             transition: 0.3s;
-            font-weight: 300;
         }
 
         .footer-link:hover {
@@ -325,15 +347,15 @@
         }
 
         .footer-bottom {
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            border-top: 1px solid rgba(255,255,255,0.05);
             margin-top: 60px;
             padding-top: 30px;
             font-size: 0.65rem;
             letter-spacing: 2px;
-            color: rgba(255, 255, 255, 0.4);
+            color: rgba(255,255,255,0.4);
         }
 
-        /* Zomato style food icon */
+        /* Food icon */
         .food-icon {
             width: 16px;
             height: 16px;
@@ -368,7 +390,7 @@
             background-color: #dc3545;
         }
 
-        /* Toggle Switch */
+        /* Egg toggle */
         .egg-toggle {
             position: relative;
             display: inline-block;
@@ -419,28 +441,12 @@
             color: #28a745;
             transform: scale(1.05);
         }
-
-        /* Search input styling */
-        #categorySearch {
-            max-width: 400px;
-            margin: 0 auto;
-            border: 2px solid #eee;
-            border-radius: 50px;
-            padding: 12px 20px;
-            font-size: 1rem;
-            transition: 0.3s;
-        }
-        #categorySearch:focus {
-            border-color: var(--gold);
-            box-shadow: 0 0 0 4px rgba(212,175,55,0.1);
-            outline: none;
-        }
     </style>
 </head>
 
 <body>
 
-    <!-- Success Alert (unchanged) -->
+    <!-- Success Alert -->
     @if(session('success'))
     <div class="position-fixed top-0 end-0 p-3" style="z-index: 3000;">
         <div class="toast show align-items-center text-white bg-dark border-0 shadow" role="alert">
@@ -448,14 +454,13 @@
                 <div class="toast-body">
                     ✨ {{ session('success') }}
                 </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                    data-bs-dismiss="toast"></button>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
             </div>
         </div>
     </div>
     @endif
 
-    <!-- Floating Cart with correct count -->
+    <!-- Floating Cart -->
     <a href="{{ route('cart.index') }}" class="floating-cart">
         <i class="fa-solid fa-cart-shopping"></i>
         @php
@@ -469,7 +474,7 @@
         <span class="cart-badge">{{ $cartCount }}</span>
     </a>
 
-    <!-- Navbar (unchanged, just added scroll detection) -->
+    <!-- Navbar -->
     <nav class="navbar navbar-expand-lg fixed-top" id="mainNav">
         <div class="container">
             <a class="navbar-brand serif text-dark text-decoration-none" href="{{ route('home') }}">BLONDE BAKERY</a>
@@ -480,7 +485,13 @@
             <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
                 <ul class="navbar-nav align-items-center gap-2">
                     <li class="nav-item me-3">
-                        <a class="nav-link text-uppercase small letter-spacing-2" href="#collection">Categories</a>
+                        <a class="nav-link text-uppercase small letter-spacing-2" href="{{ route('categories.index') }}">Categories</a>
+                    </li>
+                    <li class="nav-item me-3">
+                        <a class="nav-link text-uppercase small letter-spacing-2" href="#story">Our Story</a>
+                    </li>
+                    <li class="nav-item me-3">
+                        <a class="nav-link text-uppercase small letter-spacing-2" href="#reviews">Reviews</a>
                     </li>
 
                     <div class="d-flex align-items-center gap-2 ms-lg-3 border-start ps-lg-4" style="border-color: rgba(0,0,0,0.1) !important;">
@@ -528,55 +539,44 @@
         </div>
     </nav>
 
+    <!-- Hero Section -->
     <section class="hero-split">
-
-        <!-- LEFT SIDE CONTENT -->
         <div class="container">
             <div class="row">
                 <div class="col-lg-5 hero-content" data-aos="fade-up">
                     <span class="text-gold text-uppercase small letter-spacing-3 d-block mb-3">
                         Pune | Paris | Tokyo
                     </span>
-
                     <h1 class="serif" style="font-size: 4.5rem; line-height:1.1;">
                         Elegance <br> You Can Taste.
                     </h1>
-
                     <p class="lead opacity-75 my-4">
                         Designing bespoke couture cakes that serve as the centerpiece
                         for your most cherished celebrations.
                     </p>
-
-                    <a href="#collection" class="btn-luxury">
+                    <a href="{{ route('categories.index') }}" class="btn-luxury">
                         View Collection
                     </a>
                 </div>
             </div>
         </div>
-
-        <!-- RIGHT SIDE SLIDER (DYNAMIC PRODUCTS) -->
         <div class="hero-slider">
             <div class="swiper heroSwiper h-100">
                 <div class="swiper-wrapper">
-
                     @foreach($sliderProducts as $product)
-                    <div class="swiper-slide"
-                        style="background-image: url('{{ asset('storage/' . $product->image) }}');">
-                    </div>
+                    <div class="swiper-slide" style="background-image: url('{{ asset('storage/' . $product->image) }}');"></div>
                     @endforeach
-
                 </div>
             </div>
         </div>
-
     </section>
-    <br>
-    <div class="d-flex justify-content-center align-items-center mb-4">
 
+    <br>
+
+    <!-- Egg Toggle (optional) -->
+    <div class="d-flex justify-content-center align-items-center mb-4">
         <label class="egg-toggle">
-            <input type="checkbox"
-                id="eggToggle"
-                {{ request('egg') == 'eggless' ? 'checked' : '' }}>
+            <input type="checkbox" id="eggToggle" {{ request('egg') == 'eggless' ? 'checked' : '' }}>
             <span class="slider"></span>
         </label>
         <span id="eggText" class="ms-3 fw-semibold">
@@ -584,80 +584,46 @@
         </span>
     </div>
 
-    <!-- Products Section -->
+    <!-- Signature Cakes Section (6 items) -->
     <section id="collection" class="py-5">
         <div class="container py-5">
-
-            <div class="text-center mb-5">
-                <h2 class="serif h1 italic">Categories</h2>
+            <div class="text-center mb-5" data-aos="fade-up">
+                <h2 class="serif h1 italic">Signature Cakes</h2>
                 <div style="width: 50px; height: 2px; background: var(--gold); margin: 20px auto;"></div>
-
-                <!-- Search Bar for Categories -->
-                <div class="mb-4">
-                    <input type="text" id="categorySearch" class="form-control" placeholder="Search categories...">
-                </div>
-
-                <div class="category-tabs text-center mb-4">
-
-                    <!-- All Button -->
-                    <button type="button"
-                        class="btn m-1 btn-dark category-btn"
-                        data-category="all">
-                        All
-                    </button>
-
-                    @foreach($categories as $category)
-                    <button type="button"
-                        class="btn m-1 btn-outline-dark category-btn"
-                        data-category="{{ $category->id }}">
-                        {{ $category->name }}
-                    </button>
-                    @endforeach
-
-                </div>
+                <p class="text-muted">A curated selection of our most beloved creations</p>
             </div>
 
+            <!-- Product Grid (6 items) -->
             <div class="row">
                 @forelse($products->take(6) as $index => $product)
-
                 <div class="col-lg-6 {{ $index % 2 != 0 ? 'mt-lg-5' : '' }} product-item"
                     data-category="{{ $product->category_id }}"
                     data-egg="{{ $product->egg_type }}"
                     data-aos="fade-up"
                     data-aos-delay="{{ $index * 100 }}">
-
                     <div class="product-card">
                         <div class="product-img-wrap">
-                            <img src="{{ asset('storage/' . $product->image) }}"
-                                class="img-fluid"
-                                alt="{{ $product->name }}"
-                                onerror="this.src='https://via.placeholder.com/500x500?text=Cake';">
+                            <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}"
+                                 onerror="this.src='https://via.placeholder.com/500x500?text=Cake';">
                         </div>
-
                         <div class="product-info-overlay">
                             <span class="product-category">
-
                                 @if($product->egg_type == 'eggless')
                                 <span class="food-icon veg"></span>
                                 @else
                                 <span class="food-icon non-veg"></span>
                                 @endif
-
                                 {{ $product->category->name ?? 'Couture' }}
                             </span>
-
                             <h3 class="product-name">{{ $product->name }}</h3>
                             <p class="product-price">₹{{ number_format($product->price, 2) }}</p>
-
                             <form action="{{ route('cart.add', $product->id) }}" method="POST">
                                 @csrf
                                 <button type="submit" class="btn-luxury">Reserve this piece</button>
                             </form>
                         </div>
                     </div>
-
                 </div>
-
                 @empty
                 <div class="col-12 text-center py-5">
                     <p class="serif h4 text-muted">New designs are being curated in our kitchen...</p>
@@ -665,9 +631,86 @@
                 @endforelse
             </div>
 
+            <div class="text-center mt-5">
+                <a href="{{ route('categories.index') }}" class="btn-luxury">View All Collection</a>
+            </div>
         </div>
     </section>
 
+    <!-- Our Story Section -->
+    <section id="story" class="story-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 mb-4 mb-lg-0" data-aos="fade-right">
+                    <div class="story-image">
+                        <img src="https://images.unsplash.com/photo-1464347744102-11db6282f854?q=80&w=1000" alt="Our Bakery" class="img-fluid">
+                    </div>
+                </div>
+                <div class="col-lg-6" data-aos="fade-left">
+                    <div class="story-content">
+                        <span class="text-gold text-uppercase small letter-spacing-3">Our Story</span>
+                        <h2 class="serif">Passion Baked <br>Since 2026</h2>
+                        <p>Blonde Bakery was born from a dream to elevate the art of patisserie. Every cake is a labor of love, combining the finest ingredients with couture design. Our atelier in Pune crafts bespoke creations for connoisseurs around the world.</p>
+                        <p>From intimate celebrations to grand weddings, we transform your vision into edible art. Each creation tells a story of love, tradition, and couture design.</p>
+                        <a href="#" class="btn-luxury mt-3">Meet the Team</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Customer Reviews Section -->
+    <section id="reviews" class="testimonial-section">
+        <div class="container">
+            <div class="text-center mb-5" data-aos="fade-up">
+                <h2 class="serif h1">Client Love</h2>
+                <div style="width: 50px; height: 2px; background: var(--gold); margin: 20px auto;"></div>
+            </div>
+            <div class="swiper testimonialSwiper">
+                <div class="swiper-wrapper">
+                    <!-- Review 1 -->
+                    <div class="swiper-slide">
+                        <div class="testimonial-card text-center">
+                            <img src="https://randomuser.me/api/portraits/women/44.jpg" class="testimonial-avatar">
+                            <div class="stars mb-2">
+                                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                            </div>
+                            <p class="testimonial-text">"Absolutely exquisite! The cake was the centerpiece of our wedding and tasted as divine as it looked."</p>
+                            <h5 class="testimonial-name">Anjali Sharma</h5>
+                            <span class="testimonial-role">Bride</span>
+                        </div>
+                    </div>
+                    <!-- Review 2 -->
+                    <div class="swiper-slide">
+                        <div class="testimonial-card text-center">
+                            <img src="https://randomuser.me/api/portraits/men/32.jpg" class="testimonial-avatar">
+                            <div class="stars mb-2">
+                                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                            </div>
+                            <p class="testimonial-text">"The attention to detail is incredible. Every bite was pure bliss. Highly recommended!"</p>
+                            <h5 class="testimonial-name">Raj Mehta</h5>
+                            <span class="testimonial-role">Birthday Celebrant</span>
+                        </div>
+                    </div>
+                    <!-- Review 3 -->
+                    <div class="swiper-slide">
+                        <div class="testimonial-card text-center">
+                            <img src="https://randomuser.me/api/portraits/women/68.jpg" class="testimonial-avatar">
+                            <div class="stars mb-2">
+                                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                            </div>
+                            <p class="testimonial-text">"We've ordered multiple times for corporate events. Always a showstopper."</p>
+                            <h5 class="testimonial-name">Priya Kapoor</h5>
+                            <span class="testimonial-role">Event Manager</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="swiper-pagination"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
     <footer class="luxury-footer">
         <div class="container">
             <div class="row g-5">
@@ -686,7 +729,7 @@
                 <div class="col-lg-2 col-6" data-aos="fade-up" data-aos-delay="100">
                     <span class="footer-header serif italic">Boutique</span>
                     <a href="{{ route('home') }}" class="footer-link">Home</a>
-                    <a href="#collection" class="footer-link">Collection</a>
+                    <a href="{{ route('categories.index') }}" class="footer-link">Collection</a>
                     <a href="#" class="footer-link">Track Order</a>
                     <a href="#" class="footer-link">Gifting</a>
                 </div>
@@ -701,7 +744,7 @@
                     <p class="small opacity-50 mb-4">Follow us for daily sweet inspirations and artistry.</p>
                     <div class="position-relative">
                         <input type="email" class="form-control bg-transparent border-0 border-bottom rounded-0 px-0 text-white shadow-none"
-                            placeholder="Newsletter" style="border-color: rgba(255,255,255,0.1) !important; font-size: 0.8rem;">
+                               placeholder="Newsletter" style="border-color: rgba(255,255,255,0.1) !important; font-size: 0.8rem;">
                         <button class="btn p-0 position-absolute end-0 top-0 text-gold"><i class="fa-solid fa-arrow-right-long"></i></button>
                     </div>
                 </div>
@@ -717,13 +760,8 @@
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
-        // Initialize AOS
-        AOS.init({
-            duration: 800,
-            once: true
-        });
+        AOS.init({ duration: 800, once: true });
 
-        // Navbar scroll effect
         window.addEventListener('scroll', function() {
             const nav = document.querySelector('.navbar');
             if (window.scrollY > 80) {
@@ -733,32 +771,26 @@
             }
         });
 
-        // Swiper
+        // Hero Swiper
         const heroSwiper = new Swiper('.heroSwiper', {
             loop: true,
-            autoplay: {
-                delay: 4000,
-                disableOnInteraction: false
-            },
+            autoplay: { delay: 4000, disableOnInteraction: false },
             speed: 1000,
-            pagination: {
-                el: '.swiper-pagination',
-                clickable: true
-            },
-            navigation: {
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev'
-            },
+            pagination: { el: '.swiper-pagination', clickable: true },
+            navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
         });
 
-        // Auto-close alert (unchanged)
-        setTimeout(function() {
-            let alert = document.querySelector('.custom-alert');
-            if (alert) {
-                let bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
+        // Testimonials Swiper
+        const testimonialSwiper = new Swiper('.testimonialSwiper', {
+            loop: true,
+            autoplay: { delay: 5000, disableOnInteraction: false },
+            pagination: { el: '.swiper-pagination', clickable: true },
+            slidesPerView: 1,
+            spaceBetween: 30,
+            breakpoints: {
+                768: { slidesPerView: 2 }
             }
-        }, 5000);
+        });
 
         setTimeout(function() {
             let toastEl = document.querySelector('.toast');
@@ -767,34 +799,16 @@
                 toast.hide();
             }
         }, 2500);
-        let selectedCategory = "all";
-        let egglessMode = false;
 
+        // Filter functionality for egg toggle
+        let egglessMode = false;
         const products = document.querySelectorAll('.product-item');
-        const categoryButtons = document.querySelectorAll('.category-btn');
         const eggToggle = document.getElementById('eggToggle');
         const eggText = document.getElementById('eggText');
 
-        // Category Click
-        categoryButtons.forEach(button => {
-            button.addEventListener('click', function() {
-
-                selectedCategory = this.dataset.category;
-
-                categoryButtons.forEach(btn => btn.classList.remove('btn-dark'));
-                categoryButtons.forEach(btn => btn.classList.add('btn-outline-dark'));
-                this.classList.remove('btn-outline-dark');
-                this.classList.add('btn-dark');
-
-                filterProducts();
-            });
-        });
-
-        // Egg Toggle
         eggToggle.addEventListener('change', function() {
             egglessMode = this.checked;
             filterProducts();
-
             if (egglessMode) {
                 eggText.classList.add('egg-active');
                 eggText.innerText = "Eggless Mode ON";
@@ -804,44 +818,12 @@
             }
         });
 
-        // Filter Function
         function filterProducts() {
             products.forEach(product => {
-
-                let matchCategory =
-                    selectedCategory === "all" ||
-                    product.dataset.category === selectedCategory;
-
-                let matchEgg = !egglessMode ||
-                    product.dataset.egg === "eggless";
-
-                if (matchCategory && matchEgg) {
-                    product.style.display = "block";
-                } else {
-                    product.style.display = "none";
-                }
+                let matchEgg = !egglessMode || product.dataset.egg === "eggless";
+                product.style.display = matchEgg ? "block" : "none";
             });
         }
-
-        // Category Search (new)
-        const categorySearch = document.getElementById('categorySearch');
-        categorySearch.addEventListener('keyup', function() {
-            const term = this.value.toLowerCase().trim();
-            const buttons = document.querySelectorAll('.category-btn');
-            buttons.forEach(btn => {
-                // Always show the "All" button even if search doesn't match
-                if (btn.dataset.category === 'all') {
-                    btn.style.display = '';
-                } else {
-                    const btnText = btn.innerText.toLowerCase();
-                    if (btnText.includes(term)) {
-                        btn.style.display = '';
-                    } else {
-                        btn.style.display = 'none';
-                    }
-                }
-            });
-        });
     </script>
 </body>
 

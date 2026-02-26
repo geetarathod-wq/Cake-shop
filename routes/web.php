@@ -11,7 +11,7 @@ use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\ReportController;
-use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CategoryController; // Public category controller
 
 // 1. PUBLIC FRONTEND
 Route::get('/', [ProductController::class, 'index'])->name('home');
@@ -43,9 +43,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/order/success/{order}', [CheckoutController::class, 'success'])->name('order.success');
 
     Route::get('/my-orders', [CustomerOrderController::class, 'index'])->name('customer.orders');
-    
-    // NEW: Order details page
-Route::get('/order/{order}', [CustomerOrderController::class, 'show'])->name('order.details');
+    Route::get('/order/{order}', [CustomerOrderController::class, 'show'])->name('order.details');
     Route::get('/track-order', function () {
         return view('track-order');
     })->name('order.track');

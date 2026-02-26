@@ -9,23 +9,22 @@ use Illuminate\Http\Request;
 class CategoryController extends Controller
 {
     /**
-     * Display a listing of all categories (public).
+     * Display a listing of all categories.
      */
     public function index()
     {
-        $categories = Category::all();
+        // Eager load products to check egg types
+        $categories = Category::withCount('products')->with('products')->get();
 
-        $query = Product::with('category');
-
-        if (request()->has('category')) {
-            $query->where('category_id', request('category'));
+        foreach ($categories as $category) {
+            // Determine if category has eggless and/or egg products
+            $category->has_eggless = $category->products->contains('egg_type', 'eggless');
+            $category->has_egg     = $category->products->contains('egg_type', 'with_egg');
         }
 
-        $products = $query->get();
-        $sliderProducts = Product::latest()->take(6)->get();
-
-        return view('welcome', compact('products', 'sliderProducts', 'categories'));
+        return view('categories.index', compact('categories'));
     }
+
     /**
      * Display products belonging to a specific category.
      */
@@ -33,6 +32,7 @@ class CategoryController extends Controller
     {
         $category = Category::where('slug', $slug)->firstOrFail();
         $products = Product::where('category_id', $category->id)->with('category')->get();
+
         return view('categories.show', compact('category', 'products'));
     }
 }

@@ -18,16 +18,16 @@
             text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
         }
         .product-card {
-            border-radius: 16px;
-            overflow: hidden;
-            transition: 0.3s;
             background: white;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.03);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            transition: 0.3s;
             height: 100%;
         }
         .product-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(212,175,55,0.1);
+            box-shadow: 0 20px 40px rgba(212,175,55,0.1);
         }
         .product-image {
             height: 250px;
@@ -74,7 +74,7 @@
 @endpush
 
 @section('content')
-    <div class="category-header" data-aos="fade-down">
+    <div class="category-header">
         <h1 class="serif">{{ $category->name }}</h1>
         <p class="lead">{{ $category->products_count }} exquisite creations</p>
     </div>
