@@ -62,11 +62,13 @@
     @stack('styles')
 </head>
 <body>
-    <!-- Simple Navbar (you can expand this later) -->
+    <!-- Simple Navbar (updated with Home on the right) -->
     <nav class="navbar">
         <div class="container">
             <a class="navbar-brand serif text-dark text-decoration-none" href="{{ route('home') }}">BLONDE BAKERY</a>
             <div>
+                <!-- Home link added here -->
+                <a href="{{ route('home') }}" class="text-dark me-3">Home</a>
                 @auth
                     <span class="me-3">Hi, {{ Auth::user()->name }}</span>
                     <a href="{{ route('customer.orders') }}" class="text-dark me-3">My Orders</a>

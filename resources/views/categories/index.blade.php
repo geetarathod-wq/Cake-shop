@@ -112,7 +112,7 @@
             box-shadow: 0 15px 30px rgba(212,175,55,0.1);
         }
         .category-image {
-            height: 220px;
+            height: 400px;
             overflow: hidden;
         }
         .category-image img {
@@ -165,13 +165,7 @@
 @endpush
 
 @section('content')
-    <!-- Back to Home button -->
-    <div class="back-home">
-        <a href="{{ route('home') }}">
-            <i class="fa-regular fa-arrow-left me-2"></i> Home
-        </a>
-    </div>
-
+    
     <div class="container">
         <div class="categories-header" data-aos="fade-up">
             <h1 class="serif">Our Collections</h1>
@@ -182,7 +176,9 @@
         <!-- Filters: Search + Egg Toggle -->
         <div class="filters-container" data-aos="fade-up">
             <div class="search-container">
-                <input type="text" id="categorySearch" class="search-input" placeholder="Search categories...">
+                <form action="{{ route('search.products') }}" method="GET" style="width: 100%;">
+                    <input type="text" name="query" class="search-input" placeholder="Search flavours..." required>
+                </form>
             </div>
             <div class="egg-toggle-wrapper">
                 <button class="egg-btn active" id="eggAllBtn">All</button>
@@ -194,27 +190,19 @@
         <!-- Categories Grid -->
         <div class="row g-4" id="categoriesGrid">
             @forelse($categories as $category)
-                @php
-                    // You need to compute these flags in your controller.
-                    // Example: $hasEggless = $category->products->contains('egg_type', 'eggless');
-                    //          $hasEgg     = $category->products->contains('egg_type', 'with_egg');
-                    // For now, using placeholders – replace with actual logic.
-                    $hasEggless = true;   // change this
-                    $hasEgg     = true;   // change this
-                @endphp
                 <div class="col-lg-4 col-md-6 category-item"
                      data-category-name="{{ strtolower($category->name) }}"
-                     data-has-eggless="{{ $hasEggless ? '1' : '0' }}"
-                     data-has-egg="{{ $hasEgg ? '1' : '0' }}"
+                     data-has-eggless="{{ isset($category->has_eggless) && $category->has_eggless ? '1' : '0' }}"
+                     data-has-egg="{{ isset($category->has_egg) && $category->has_egg ? '1' : '0' }}"
                      data-aos="fade-up"
                      data-aos-delay="{{ $loop->index * 50 }}">
                     <a href="{{ route('categories.show', $category->slug) }}" class="text-decoration-none">
                         <div class="category-card">
-                            @if($hasEggless && $hasEgg)
+                            @if(isset($category->has_eggless) && $category->has_eggless && isset($category->has_egg) && $category->has_egg)
                                 <div class="badge-egg">🌱🥚</div>
-                            @elseif($hasEggless)
+                            @elseif(isset($category->has_eggless) && $category->has_eggless)
                                 <div class="badge-egg veg">🌱 Eggless</div>
-                            @elseif($hasEgg)
+                            @elseif(isset($category->has_egg) && $category->has_egg)
                                 <div class="badge-egg non-veg">🥚 With Egg</div>
                             @endif
                             <div class="category-image">
@@ -235,10 +223,10 @@
             @endforelse
         </div>
 
-        <!-- No results message (for search) -->
+        <!-- No results message (for category filter) -->
         <div id="noResults" class="no-results">
             <i class="fa-regular fa-face-frown fa-2x mb-3"></i>
-            <p>No categories match your search.</p>
+            <p>No categories match your filter.</p>
         </div>
     </div>
 @endsection
@@ -248,20 +236,14 @@
     <script>
         AOS.init({ duration: 800, once: true });
 
-        // Search filter
-        const searchInput = document.getElementById('categorySearch');
+        // Egg filter state: 'all', 'eggless', 'egg'
+        let eggFilter = 'all';
         const categoryItems = document.querySelectorAll('.category-item');
         const noResults = document.getElementById('noResults');
 
-        // Egg filter state: 'all', 'eggless', 'egg'
-        let eggFilter = 'all';
-
         function filterCategories() {
-            const searchTerm = searchInput.value.toLowerCase().trim();
             let visibleCount = 0;
-
             categoryItems.forEach(item => {
-                const name = item.getAttribute('data-category-name');
                 const hasEggless = item.getAttribute('data-has-eggless') === '1';
                 const hasEgg = item.getAttribute('data-has-egg') === '1';
 
@@ -272,9 +254,7 @@
                     matchesEgg = hasEgg;
                 }
 
-                const matchesSearch = name.includes(searchTerm);
-
-                if (matchesSearch && matchesEgg) {
+                if (matchesEgg) {
                     item.style.display = '';
                     visibleCount++;
                 } else {
@@ -284,9 +264,6 @@
 
             noResults.style.display = visibleCount === 0 ? 'block' : 'none';
         }
-
-        // Search input event
-        searchInput.addEventListener('keyup', filterCategories);
 
         // Egg toggle buttons
         const eggAllBtn = document.getElementById('eggAllBtn');

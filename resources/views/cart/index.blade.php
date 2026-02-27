@@ -30,7 +30,7 @@
     <h1 class="serif display-5 text-center mb-5">Your Selection</h1>
 
     @php
-        $cart = $cart ?? session('cart', []); // support both passed cart and session fallback
+        $cart = $cart ?? session('cart', []);
         $total = 0;
         foreach($cart as $item) {
             $total += $item['price'] * $item['weight'] * $item['quantity'];

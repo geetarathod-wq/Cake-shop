@@ -676,7 +676,7 @@
                                 <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
                             </div>
                             <p class="testimonial-text">"Absolutely exquisite! The cake was the centerpiece of our wedding and tasted as divine as it looked."</p>
-                            <h5 class="testimonial-name">Anjali Sharma</h5>
+                            <h5 class="testimonial-name">Bonny Benet</h5>
                             <span class="testimonial-role">Bride</span>
                         </div>
                     </div>
@@ -688,7 +688,7 @@
                                 <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
                             </div>
                             <p class="testimonial-text">"The attention to detail is incredible. Every bite was pure bliss. Highly recommended!"</p>
-                            <h5 class="testimonial-name">Raj Mehta</h5>
+                            <h5 class="testimonial-name">Demon Salvator</h5>
                             <span class="testimonial-role">Birthday Celebrant</span>
                         </div>
                     </div>
@@ -700,7 +700,7 @@
                                 <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
                             </div>
                             <p class="testimonial-text">"We've ordered multiple times for corporate events. Always a showstopper."</p>
-                            <h5 class="testimonial-name">Priya Kapoor</h5>
+                            <h5 class="testimonial-name">Elina Gilbert</h5>
                             <span class="testimonial-role">Event Manager</span>
                         </div>
                     </div>

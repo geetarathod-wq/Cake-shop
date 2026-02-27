@@ -139,7 +139,7 @@
                         <input type="checkbox" class="form-check-input" id="remember" name="remember">
                         <label class="form-check-label small" for="remember">Keep me signed in</label>
                     </div>
-                    <a href="#" class="small text-muted text-decoration-none">Forgot?</a>
+                    <a href="{{ route('password.request') }}" class="small text-muted text-decoration-none">Forgot?</a>
                 </div>
 
                 <button type="submit" class="btn-luxury">Authenticate</button>

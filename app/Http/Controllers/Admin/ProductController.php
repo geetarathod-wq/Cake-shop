@@ -45,18 +45,24 @@ class ProductController extends Controller
             'image'       => 'required|image|mimes:jpeg,png,jpg|max:2048',
             'description' => 'nullable|string',
             'egg_type'    => 'required|in:with_egg,eggless',
-            
         ]);
+
+        // Generate a unique slug
+        $slug = Str::slug($request->name);
+        $originalSlug = $slug;
+        $counter = 1;
+        while (Product::where('slug', $slug)->exists()) {
+            $slug = $originalSlug . '-' . $counter++;
+        }
 
         $product = Product::create([
             'name'        => $request->name,
-            'slug'        => Str::slug($request->name),
-            'egg_type'    => $request->egg_type,
+            'slug'        => $slug,
             'price'       => $request->price,
             'category_id' => $request->category_id,
             'description' => $request->description,
             'is_active'   => $request->has('is_active') ? 1 : 0,
-
+            'egg_type'    => $request->egg_type,
         ]);
 
         if ($request->hasFile('image')) {
@@ -66,7 +72,7 @@ class ProductController extends Controller
         }
 
         return redirect()->route('admin.products.index')
-            ->with('success', 'Product created successfully.');
+                        ->with('success', 'Product created successfully.');
     }
 
     /**
