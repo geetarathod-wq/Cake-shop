@@ -1,0 +1,2 @@
+<link rel="icon" type="image/png" sizes="32x32" href="{{ asset('Favicon_Cake.png') }}">
+<link rel="shortcut icon" href="{{ asset('favicon.ico') }}">

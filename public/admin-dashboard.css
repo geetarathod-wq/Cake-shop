@@ -1,0 +1,69 @@
+    /* Modern card styling */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 20px;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .glass-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .modern-card {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.02);
+        transition: box-shadow 0.3s;
+    }
+
+    .modern-card:hover {
+        box-shadow: 0 10px 30px rgba(212, 175, 55, 0.1);
+    }
+
+    .icon-box {
+        width: 48px;
+        height: 48px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .avatar-circle {
+        width: 32px;
+        height: 32px;
+        background-color: var(--gold);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--dark);
+        font-weight: 600;
+    }
+
+    .btn-outline-gold {
+        border: 1px solid var(--gold);
+        color: var(--dark);
+        border-radius: 12px;
+        transition: 0.3s;
+    }
+
+    .btn-outline-gold:hover {
+        background-color: var(--gold);
+        color: var(--dark);
+        border-color: var(--gold);
+    }
+
+    .progress-bar.bg-gold {
+        background-color: var(--gold) !important;
+    }
+
+    .badge.bg-gold-light {
+        background-color: rgba(212, 175, 55, 0.1);
+        color: var(--dark);
+    }
