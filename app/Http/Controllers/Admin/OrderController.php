@@ -5,11 +5,15 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Product;
+use App\Exports\OrdersExport;
+use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
+
     public function dashboardStats()
     {
         $totalOrders   = Order::count();
@@ -18,12 +22,10 @@ class OrderController extends Controller
         $pendingOrders = Order::where('status', 'pending')->count();
         $recentOrders  = Order::with('items.product')->latest()->take(5)->get();
 
-        // Additional status counts
         $processingOrders = Order::where('status', 'processing')->count();
         $deliveredOrders  = Order::where('status', 'delivered')->count();
         $cancelledOrders  = Order::where('status', 'cancelled')->count();
 
-        // Top 5 products by quantity sold
         $topProducts = DB::table('order_items')
             ->join('products', 'order_items.product_id', '=', 'products.id')
             ->select('products.name', DB::raw('SUM(order_items.quantity) as total_qty'))
@@ -32,7 +34,6 @@ class OrderController extends Controller
             ->limit(5)
             ->get();
 
-        // Chart data: orders per day for last 7 days
         $chartData = Order::select(
                 DB::raw('DATE(created_at) as date'),
                 DB::raw('count(*) as count')
@@ -45,6 +46,7 @@ class OrderController extends Controller
         $chartLabels = $chartData->pluck('date')->map(function($date) {
             return \Carbon\Carbon::parse($date)->format('M d');
         })->toArray();
+
         $chartCounts = $chartData->pluck('count')->toArray();
 
         return view('admin.dashboard', compact(
@@ -62,23 +64,85 @@ class OrderController extends Controller
         ));
     }
 
-    public function index()
+
+    /**
+     * Orders List
+     */
+    public function index(Request $request)
     {
-        $orders = Order::with('items.product')->latest()->get();
+        $query = Order::with(['user','items.product']);
+
+        // Search (customer, phone, order id)
+        if ($request->search) {
+            $query->where(function ($q) use ($request) {
+                $q->where('customer_name', 'like', '%' . $request->search . '%')
+                ->orWhere('phone', 'like', '%' . $request->search . '%')
+                ->orWhere('id', $request->search);
+            });
+        }
+
+        // Order Source
+        if ($request->order_source) {
+            $query->where('order_source', $request->order_source);
+        }
+
+        // Status
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+
+        // Payment Method
+        if ($request->payment_method) {
+            $query->where('payment_method', $request->payment_method);
+        }
+
+        // Delivery Date
+        if ($request->delivery_date) {
+            $query->whereDate('delivery_date', $request->delivery_date);
+        }
+
+        $orders = $query->latest()->paginate(15);
+
         return view('admin.orders.index', compact('orders'));
     }
-
-    public function update(Request $request, $id)
+    /**
+     * Show Order Details
+     */
+    public function show(Order $order)
     {
-        // Validate the status input
+        $order->load('user', 'items.product');
+
+        return view('admin.orders.show', compact('order'));
+    }
+
+
+    /**
+     * Update Order Status
+     */
+    public function update(Request $request, Order $order)
+    {
         $request->validate([
-            'status' => 'required|in:pending,processing,delivered,cancelled',
+            'status' => 'required|string|in:pending,processing,delivered,cancelled'
         ]);
 
-        $order = Order::findOrFail($id);
-        $order->status = $request->status;
-        $order->save();
-        
-        return redirect()->back()->with('success', 'Order status updated.');
+        $order->update([
+            'status' => $request->status
+        ]);
+
+        return back()->with('success', 'Order status updated successfully.');
     }
-}
+
+        public function exportExcel()
+    {
+        return Excel::download(new OrdersExport, 'orders_report.xlsx');
+    }
+
+    public function exportPDF()
+    {
+        $orders = Order::with('items')->get();
+
+        $pdf = Pdf::loadView('admin.reports.orders_pdf', compact('orders'));
+
+        return $pdf->download('orders_report.pdf');
+    }
+    }

@@ -107,23 +107,32 @@ class CartController extends Controller
     public function update(Request $request)
     {
         $request->validate([
-            'quantity' => 'required|integer|min:1',
+            'id'       => 'required',
+            'quantity' => 'required|integer|min:1'
         ]);
 
-        $id = $request->id; // can be cart_item id (logged in) or composite key (guest)
+        $id = $request->id;
         $quantity = $request->quantity;
 
         if (Auth::check()) {
             // $id is the cart_item id
-            $cartItem = CartItem::findOrFail($id);
+            $cartItem = CartItem::find($id);
+            if (!$cartItem) {
+                return response()->json(['success' => false], 404);
+            }
+            // Optional: ensure this item belongs to the current user
+            if ($cartItem->cart->user_id != Auth::id()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            }
             $cartItem->quantity = $quantity;
             $cartItem->save();
         } else {
             $cart = session()->get('cart', []);
-            if (isset($cart[$id])) {
-                $cart[$id]['quantity'] = $quantity;
-                session()->put('cart', $cart);
+            if (!isset($cart[$id])) {
+                return response()->json(['success' => false], 404);
             }
+            $cart[$id]['quantity'] = $quantity;
+            session()->put('cart', $cart);
         }
 
         return response()->json(['success' => true]);
@@ -135,45 +144,57 @@ class CartController extends Controller
     public function updateWeight(Request $request)
     {
         $request->validate([
-            'weight' => 'required|numeric|min:0.5|max:5',
+            'id'     => 'required',
+            'weight' => 'required|numeric|min:0.5|max:5'
         ]);
 
         $id = $request->id;
         $newWeight = $request->weight;
 
         if (Auth::check()) {
-            $cartItem = CartItem::findOrFail($id);
+            $cartItem = CartItem::find($id);
+            if (!$cartItem) {
+                return response()->json(['success' => false], 404);
+            }
+            if ($cartItem->cart->user_id != Auth::id()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            }
             $cartItem->weight = $newWeight;
             $cartItem->save();
         } else {
             $cart = session()->get('cart', []);
-            if (isset($cart[$id])) {
-                $cart[$id]['weight'] = $newWeight;
-                session()->put('cart', $cart);
+            if (!isset($cart[$id])) {
+                return response()->json(['success' => false], 404);
             }
+            $cart[$id]['weight'] = $newWeight;
+            session()->put('cart', $cart);
         }
 
         return response()->json(['success' => true]);
     }
 
-    /**
-     * Remove item from cart
-     */
     public function remove($cartKey)
     {
         if (Auth::check()) {
             // $cartKey is the cart_item id
-            $cartItem = CartItem::findOrFail($cartKey);
+            $cartItem = CartItem::find($cartKey);
+            if (!$cartItem) {
+                return response()->json(['success' => false], 404);
+            }
+            if ($cartItem->cart->user_id != Auth::id()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            }
             $cartItem->delete();
         } else {
             $cart = session()->get('cart', []);
-            if (isset($cart[$cartKey])) {
-                unset($cart[$cartKey]);
-                session()->put('cart', $cart);
+            if (!isset($cart[$cartKey])) {
+                return response()->json(['success' => false], 404);
             }
+            unset($cart[$cartKey]);
+            session()->put('cart', $cart);
         }
 
-        return redirect()->back()->with('success', 'Item removed.');
+        return response()->json(['success' => true]);
     }
 
     /**

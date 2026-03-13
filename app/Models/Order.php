@@ -2,29 +2,36 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
-    /**
-     * The attributes that are mass assignable.
-     */
-    protected $fillable = [
+    use HasFactory;
+
+protected $fillable = [
     'user_id',
-    'name',
-    'email',
+    'customer_name',
     'phone',
-    'address',
+    'email',
     'delivery_date',
-    'total_amount',
-    'status'
+    'payment_method',
+    'subtotal',
+    'status',
+    'order_source',
+    'total_amount'
+];
+
+    protected $casts = [
+        'delivery_date' => 'date',
     ];
 
-    /**
-     * Relationship: One order has many items.
-     */
-    public function items(): HasMany
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function items()
     {
         return $this->hasMany(OrderItem::class);
     }

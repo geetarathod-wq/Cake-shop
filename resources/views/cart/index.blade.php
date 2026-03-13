@@ -6,6 +6,7 @@
     <title>Your Atelier Bag | Blonde Bakery</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="icon" type="image/png" href="{{ asset('Fevicon_Cake.png') }}">
+    {{-- jQuery is still included because it's used by the Razorpay handler – you can replace that later if you wish --}}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         :root { --gold: #D4AF37; --cream: #F9F7F2; --dark: #1A1A1A; }
@@ -23,6 +24,8 @@
         .checkout-form { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); }
         .form-control:focus { border-color: var(--gold); box-shadow: 0 0 0 0.2rem rgba(212,175,55,0.1); }
     </style>
+    {{-- CSRF token meta tag – required for fetch requests --}}
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body>
 
@@ -52,7 +55,7 @@
                                 <th></th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="cart-items-body">
                             @foreach($cart as $id => $details)
                                 @php
                                     $subtotal = $details['price'] * $details['weight'] * $details['quantity'];
@@ -105,7 +108,7 @@
             <div class="col-lg-5">
                 <div class="checkout-form">
                     <h4 class="serif mb-4">Checkout</h4>
-                    <form action="{{ route('checkout.store') }}" method="POST">
+                    <form id="checkoutForm" action="{{ route('checkout.store') }}" method="POST">
                         @csrf
                         <div class="row">
                             <div class="col-md-6">
@@ -128,7 +131,7 @@
                             </div>
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="payment_method" id="online" value="online" required>
-                                <label class="form-check-label" for="online">Online Payment (coming soon)</label>
+                                <label class="form-check-label" for="online">Razorpay (Cards, UPI, Netbanking)</label>
                             </div>
                             @error('payment_method') <div class="text-danger small">{{ $message }}</div> @enderror
                         </div>
@@ -147,9 +150,7 @@
                             <span class="h4 serif text-dark cart-total">₹{{ number_format($total, 2) }}</span>
                         </div>
 
-                        <button type="submit" class="btn btn-luxury py-3">
-                            <i class="fas fa-lock me-2"></i>PLACE ORDER
-                        </button>
+                        <button type="submit" class="btn btn-luxury py-3" id="placeOrderBtn">PLACE ORDER</button>
                     </form>
                     <p class="text-muted small text-center mt-3 mb-0">
                         Your order will be confirmed by our team.
@@ -166,105 +167,266 @@
     @endif
 </div>
 
+<!-- Razorpay Checkout Script -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+{{-- FETCH-BASED CART UPDATES – NO PAGE RELOAD --}}
 <script type="text/javascript">
-    // Helper to get the correct ID (item-id if available, otherwise composite key)
-    function getItemId(element) {
-        var row = $(element).closest('tr');
-        return row.data('item-id') || row.data('id');
-    }
-
-    // Update quantity (plus)
-    $(".update-cart-plus").click(function (e) {
-        e.preventDefault();
-        var ele = $(this);
-        var row = ele.closest("tr");
-        var qtyField = row.find(".quantity");
-        var newQty = parseInt(qtyField.val()) + 1;
-        var id = getItemId(ele);
-        updateCart(id, newQty);
-    });
-
-    // Update quantity (minus)
-    $(".update-cart-minus").click(function (e) {
-        e.preventDefault();
-        var ele = $(this);
-        var row = ele.closest("tr");
-        var qtyField = row.find(".quantity");
-        var newQty = parseInt(qtyField.val()) - 1;
-        if(newQty > 0) {
-            var id = getItemId(ele);
-            updateCart(id, newQty);
+    (function() {
+        // Helper to get CSRF token from meta tag
+        function getCsrfToken() {
+            return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         }
-    });
 
-    // Update weight
-    $(".update-weight").change(function (e) {
-        var ele = $(this);
-        var row = ele.closest("tr");
-        var newWeight = ele.val();
-        var id = getItemId(ele);
-        updateCartWeight(id, newWeight);
-    });
+        // Helper to get the correct product ID from the row
+        function getProductId(row) {
+            // Use data-item-id if available, otherwise data-id
+            return row.dataset.itemId || row.dataset.id;
+        }
 
-    // Remove item
-    $(".remove-from-cart").click(function (e) {
-        e.preventDefault();
-        var ele = $(this);
-        var row = ele.closest("tr");
-        var id = row.data('id'); // remove uses composite key or cart_item id directly
-        if(confirm("Do you really want to remove this piece?")) {
+        // Update row subtotal and cart total after any change
+        function updateRowSubtotal(row) {
+            // Get price from the small element with class 'text-muted'
+            const priceElement = row.querySelector('.text-muted'); // because <small class="text-muted"> contains the price
+            const priceText = priceElement.innerText; // e.g., "₹499.00 / kg"
+            const price = parseFloat(priceText.replace(/[^\d.]/g, '')); // extracts 499.00
+
+            const weight = parseFloat(row.querySelector('.weight-select').value);
+            const quantity = parseInt(row.querySelector('.quantity').value);
+
+            const subtotal = price * weight * quantity;
+            row.querySelector('.item-subtotal').innerText = '₹' + subtotal.toFixed(2);
+            return subtotal;
+        }
+
+        function updateCartTotal() {
+            let total = 0;
+            document.querySelectorAll('.item-subtotal').forEach(el => {
+                total += parseFloat(el.innerText.replace(/[^\d.]/g, ''));
+            });
+            const totalEl = document.querySelector('.cart-total');
+            if (totalEl) {
+                totalEl.innerText = '₹' + total.toFixed(2);
+            }
+        }
+
+        // Quantity plus
+        document.querySelectorAll('.update-cart-plus').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const row = this.closest('tr');
+                const productId = getProductId(row);
+                const quantityInput = row.querySelector('.quantity');
+                let newQuantity = parseInt(quantityInput.value) + 1;
+
+                fetch('{{ route("update.cart") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': getCsrfToken()
+                    },
+                    body: JSON.stringify({
+                        id: productId,
+                        quantity: newQuantity
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        quantityInput.value = newQuantity;
+                        updateRowSubtotal(row);
+                        updateCartTotal();
+                    } else {
+                        alert('Error updating cart');
+                    }
+                })
+                .catch(() => alert('Network error'));
+            });
+        });
+
+        // Quantity minus
+        document.querySelectorAll('.update-cart-minus').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const row = this.closest('tr');
+                const productId = getProductId(row);
+                const quantityInput = row.querySelector('.quantity');
+                let newQuantity = parseInt(quantityInput.value) - 1;
+                if (newQuantity < 1) return; // Don't go below 1
+
+                fetch('{{ route("update.cart") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': getCsrfToken()
+                    },
+                    body: JSON.stringify({
+                        id: productId,
+                        quantity: newQuantity
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        quantityInput.value = newQuantity;
+                        updateRowSubtotal(row);
+                        updateCartTotal();
+                    } else {
+                        alert('Error updating cart');
+                    }
+                })
+                .catch(() => alert('Network error'));
+            });
+        });
+
+        // Weight change
+        document.querySelectorAll('.weight-select').forEach(select => {
+            select.addEventListener('change', function() {
+                const row = this.closest('tr');
+                const productId = getProductId(row);
+                const newWeight = this.value;
+
+                fetch('{{ route("update.cart.weight") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': getCsrfToken()
+                    },
+                    body: JSON.stringify({
+                        id: productId,
+                        weight: newWeight
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateRowSubtotal(row);
+                        updateCartTotal();
+                    } else {
+                        alert('Error updating weight');
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                    alert('Network error – check console');
+                });
+            });
+        });
+
+        // Remove item – FIXED to use getProductId()
+        document.querySelectorAll('.remove-from-cart').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (!confirm('Do you really want to remove this piece?')) return;
+
+                const row = this.closest('tr');
+                const productId = getProductId(row); // ← CORRECTED: uses data-item-id if available
+
+                fetch(`{{ url('/remove-from-cart') }}/${productId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': getCsrfToken()
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        row.remove(); // Remove the row from DOM
+                        updateCartTotal();
+                        // If no rows left, reload to show empty cart message (or you can dynamically show it)
+                        if (document.querySelectorAll('#cart-items-body tr').length === 0) {
+                            location.reload(); // Simple way to show empty cart
+                        }
+                    } else {
+                        alert('Error removing item');
+                    }
+                })
+                .catch(() => alert('Network error'));
+            });
+        });
+    })();
+
+    // Razorpay jQuery code (unchanged)
+    $(document).ready(function() {
+        $('#checkoutForm').on('submit', function(e) {
+            e.preventDefault();
+
+            var paymentMethod = $('input[name="payment_method"]:checked').val();
+            if (paymentMethod === 'cod') {
+                // Normal submission for COD
+                this.submit();
+                return;
+            }
+
+            // For online payment, get Razorpay order via AJAX
             $.ajax({
-                url: "{{ url('/remove-from-cart') }}/" + id,
-                method: "DELETE",
-                data: {
-                    _token: "{{ csrf_token() }}"
-                },
-                success: function (response) {
-                    window.location.reload();
+                url: $(this).attr('action'),
+                method: 'POST',
+                data: $(this).serialize(),
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        var options = {
+                            key: response.razorpay_key,
+                            amount: response.amount,
+                            currency: response.currency,
+                            name: "Blonde Bakery",
+                            description: "Order Payment",
+                            order_id: response.order_id,
+                            method: {
+                                emi: false,
+                                wallet: false,
+                                paylater: false
+                            },
+                            prefill: {
+                                name: response.name,
+                                email: response.email,
+                                contact: response.phone
+                            },
+                            handler: function(paymentResponse) {
+                                // Verify payment on server
+                                $.ajax({
+                                    url: '{{ route('payment.verify') }}',
+                                    method: 'POST',
+                                    data: {
+                                        _token: '{{ csrf_token() }}',
+                                        razorpay_payment_id: paymentResponse.razorpay_payment_id,
+                                        razorpay_order_id: paymentResponse.razorpay_order_id,
+                                        razorpay_signature: paymentResponse.razorpay_signature
+                                    },
+                                    success: function(verifyResponse) {
+                                        // Redirect to success page
+                                        window.location.href = verifyResponse.redirect_url;
+                                    },
+                                    error: function() {
+                                        alert('Payment verification failed. Please contact support.');
+                                    }
+                                });
+                            },
+                            modal: {
+                                ondismiss: function() {
+                                    alert('Payment cancelled');
+                                }
+                            }
+                        };
+                        var rzp = new Razorpay(options);
+                        rzp.open();
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
                 },
                 error: function(xhr) {
-                    alert('Error removing item. Please try again.');
+                    alert('Error processing payment. Please try again.');
                 }
             });
-        }
+        });
     });
-
-    function updateCart(id, qty) {
-        $.ajax({
-            url: '{{ route('update.cart') }}',
-            method: "POST",
-            data: {
-                _token: '{{ csrf_token() }}',
-                id: id,
-                quantity: qty
-            },
-            success: function (response) {
-                window.location.reload();
-            },
-            error: function(xhr) {
-                alert('Error updating quantity. Please try again.');
-            }
-        });
-    }
-
-    function updateCartWeight(id, weight) {
-        $.ajax({
-            url: '{{ route('update.cart.weight') }}',
-            method: "POST",
-            data: {
-                _token: '{{ csrf_token() }}',
-                id: id,
-                weight: weight
-            },
-            success: function (response) {
-                window.location.reload();
-            },
-            error: function(xhr) {
-                alert('Error updating weight. Please try again.');
-            }
-        });
-    }
 </script>
+
+{{-- Font Awesome --}}
+<script src="https://kit.fontawesome.com/yourkitid.js" crossorigin="anonymous"></script>
+<!-- If you don't have Font Awesome kit, include via CDN: -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
 
 </body>
 </html>

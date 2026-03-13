@@ -147,7 +147,7 @@
                         <ul class="order-items">
                             @foreach($order->items as $item)
                                 <li>
-                                    <span>{{ $item->product->name }} x{{ $item->quantity }} ({{ $item->weight }}kg)</span>
+                                    <span>{{ $item->product->name ?? 'Product Unavailable' }} x{{ $item->quantity }} ({{ $item->weight }}kg)</span>
                                     <span>₹{{ number_format($item->price * $item->quantity, 2) }}</span>
                                 </li>
                             @endforeach

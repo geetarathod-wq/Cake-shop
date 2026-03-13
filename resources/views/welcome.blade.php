@@ -750,7 +750,8 @@
                 </div>
             </div>
             <div class="footer-bottom text-center text-uppercase">
-                <p class="mb-0">© 2026 BLONDE BAKERY ARTISANAL CAKES. ALL RIGHTS RESERVED.</p>
+                <p class="mb-0">© 2003
+                     BLONDE BAKERY ARTISANAL CAKES. ALL RIGHTS RESERVED.</p>
             </div>
         </div>
     </footer>

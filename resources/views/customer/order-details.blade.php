@@ -85,10 +85,18 @@
             transition: 0.3s;
             text-decoration: none;
             display: inline-block;
+            margin: 0 5px;
         }
         .btn-back:hover {
             background: var(--gold);
             color: var(--dark);
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
         }
     </style>
 @endpush
@@ -166,7 +174,10 @@
                             </tbody>
                         </table>
 
-                        <div class="text-center mt-4">
+                        <div class="action-buttons">
+                            <a href="{{ route('order.track', $order) }}" class="btn-back">
+                                <i class="fas fa-truck me-2"></i>Track Order
+                            </a>
                             <a href="{{ route('customer.orders') }}" class="btn-back">
                                 <i class="fa-regular fa-arrow-left me-2"></i>Back to My Orders
                             </a>
