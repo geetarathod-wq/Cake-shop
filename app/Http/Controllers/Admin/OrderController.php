@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\OrderItem;
 use App\Exports\OrdersExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -14,26 +15,39 @@ use Illuminate\Support\Facades\DB;
 class OrderController extends Controller
 {
 
+    /**
+     * Dashboard statistics – optimized with single aggregated query.
+     */
     public function dashboardStats()
     {
-        $totalOrders   = Order::count();
-        $totalRevenue  = Order::sum('total_amount');
-        $totalProducts = Product::count();
-        $pendingOrders = Order::where('status', 'pending')->count();
-        $recentOrders  = Order::with('items.product')->latest()->take(5)->get();
+        // Single query for all order counts and revenue
+        $orderStats = Order::selectRaw("
+            COUNT(*) as total_orders,
+            SUM(status = 'pending') as pending_orders,
+            SUM(status = 'processing') as processing_orders,
+            SUM(status = 'delivered') as delivered_orders,
+            SUM(status = 'cancelled') as cancelled_orders,
+            SUM(total_amount) as total_revenue
+        ")->first();
 
-        $processingOrders = Order::where('status', 'processing')->count();
-        $deliveredOrders  = Order::where('status', 'delivered')->count();
-        $cancelledOrders  = Order::where('status', 'cancelled')->count();
+        // Active products count
+        $activeProducts = Product::where('is_active', true)->count();
 
-        $topProducts = DB::table('order_items')
-            ->join('products', 'order_items.product_id', '=', 'products.id')
-            ->select('products.name', DB::raw('SUM(order_items.quantity) as total_qty'))
-            ->groupBy('products.id', 'products.name')
-            ->orderBy('total_qty', 'desc')
+        // Recent orders with eager loading to avoid N+1
+        $recentOrders = Order::with(['user', 'items.product'])
+            ->latest()
             ->limit(5)
             ->get();
 
+        // Top products – single query with join (using OrderItem model)
+        $topProducts = OrderItem::select('product_id', DB::raw('SUM(quantity) as total_sold'))
+            ->with('product')
+            ->groupBy('product_id')
+            ->orderByDesc('total_sold')
+            ->limit(10)
+            ->get();
+
+        // Chart data for last 6 days
         $chartData = Order::select(
                 DB::raw('DATE(created_at) as date'),
                 DB::raw('count(*) as count')
@@ -50,20 +64,14 @@ class OrderController extends Controller
         $chartCounts = $chartData->pluck('count')->toArray();
 
         return view('admin.dashboard', compact(
-            'totalOrders',
-            'totalRevenue',
-            'totalProducts',
-            'pendingOrders',
+            'orderStats',
+            'activeProducts',
             'recentOrders',
+            'topProducts',
             'chartLabels',
-            'chartCounts',
-            'processingOrders',
-            'deliveredOrders',
-            'cancelledOrders',
-            'topProducts'
+            'chartCounts'
         ));
     }
-
 
     /**
      * Orders List
@@ -105,6 +113,7 @@ class OrderController extends Controller
 
         return view('admin.orders.index', compact('orders'));
     }
+
     /**
      * Show Order Details
      */
@@ -114,7 +123,6 @@ class OrderController extends Controller
 
         return view('admin.orders.show', compact('order'));
     }
-
 
     /**
      * Update Order Status
@@ -132,7 +140,7 @@ class OrderController extends Controller
         return back()->with('success', 'Order status updated successfully.');
     }
 
-        public function exportExcel()
+    public function exportExcel()
     {
         return Excel::download(new OrdersExport, 'orders_report.xlsx');
     }
@@ -145,4 +153,4 @@ class OrderController extends Controller
 
         return $pdf->download('orders_report.pdf');
     }
-    }
+}

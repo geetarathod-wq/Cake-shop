@@ -12,21 +12,27 @@ class OrderFactory extends Factory
 
     public function definition()
     {
-        $orderTypes = ['preorder', 'walkin', 'delivery', 'pickup', 'custom'];
-        $statuses = ['pending', 'processing', 'completed', 'cancelled'];
-        $paymentMethods = ['cod', 'online', 'card'];
-
         return [
-            'user_id' => User::inRandomOrder()->first()->id ?? null,
-            'name' => fake()->name(),
+            'razorpay_order_id' => fake()->optional()->uuid(),
+            'user_id' => User::inRandomOrder()->first()->id ?? User::factory(),
+            'customer_name' => fake()->name(),
+            'total_amount' => fake()->randomFloat(2, 100, 5000),
+            'status' => fake()->randomElement(['pending', 'processing', 'completed', 'cancelled']),
+            'order_source' => fake()->randomElement(['website', 'walkin', 'phone']),
+            'payment_method' => fake()->randomElement(['cod', 'online', 'card']),
+            'payment_status' => fake()->randomElement(['pending', 'paid', 'failed']),
+            'order_type' => fake()->randomElement(['preorder', 'walkin', 'delivery', 'pickup', 'custom']),
+            'delivery_type' => fake()->randomElement(['standard', 'express']), // Always set, never null
+            'coupon_code' => fake()->optional()->word(),
+            'discount_amount' => fake()->optional(0.3, 0)->randomFloat(2, 0, 500),
             'email' => fake()->email(),
             'phone' => fake()->phoneNumber(),
+            'delivery_date' => fake()->optional()->dateTimeBetween('now', '+1 month'),
+            'delivery_slot' => fake()->optional()->randomElement(['morning', 'afternoon', 'evening']),
+            'admin_note' => fake()->optional()->sentence(),
+            'custom_message' => fake()->optional()->sentence(),
+            'name' => fake()->name(),
             'address' => fake()->optional()->address(),
-            'total_amount' => fake()->randomFloat(2, 100, 5000),
-            'discount_amount' => fake()->optional(0.3, 0)->randomFloat(2, 0, 500),
-            'order_type' => fake()->randomElement($orderTypes),
-            'status' => fake()->randomElement($statuses),
-            'payment_method' => fake()->randomElement($paymentMethods),
             'created_at' => fake()->dateTimeBetween('-2 years', 'now'),
             'updated_at' => now(),
         ];

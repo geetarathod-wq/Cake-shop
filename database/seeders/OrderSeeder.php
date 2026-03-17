@@ -3,88 +3,68 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use App\Models\User;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Product;
-use Carbon\Carbon;
+use Faker\Factory as Faker;
 
 class OrderSeeder extends Seeder
 {
-    public function run(): void
+    public function run()
     {
+        $faker = Faker::create();
 
+        $users = User::all();
         $products = Product::all();
 
-        if ($products->count() == 0) {
-            $this->command->info('No products found. Please seed products first.');
+        if ($products->isEmpty()) {
+            $this->command->error('No products found. Please run ProductSeeder first.');
             return;
         }
 
-        $walkinPayments = ['cash','upi'];
-        $onlinePayments = ['upi','card','netbanking','cod'];
+        foreach ($users as $user) {
+            // Each user gets 2-8 more orders
+            $numOrders = rand(2, 8);
+            for ($i = 0; $i < $numOrders; $i++) {
+                $order = Order::factory()->create([
+                    'user_id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'phone' => $user->phone,
+                    'address' => $user->address,
+                ]);
 
-        $statuses = ['pending','processing','delivered'];
+                // Add 1-5 items
+                $numItems = rand(1, 5);
+                $orderTotal = 0;
+                for ($j = 0; $j < $numItems; $j++) {
+                    $product = $products->random();
+                    $quantity = rand(1, 3);
+                    $price = $product->price;
+                    $subtotal = $quantity * $price;
+                    $orderTotal += $subtotal;
 
-        for ($i = 1; $i <= 200; $i++) {
+                    OrderItem::create([
+                        'order_id' => $order->id,
+                        'product_id' => $product->id,
+                        'quantity' => $quantity,
+                        'price' => $price,
+                        'subtotal' => $subtotal,
+                        'created_at' => $order->created_at,
+                        'updated_at' => $order->updated_at,
+                    ]);
+                }
 
-            $orderSource = rand(0,1) ? 'online' : 'walkin';
-
-            $paymentMethod = $orderSource == 'walkin'
-                ? $walkinPayments[array_rand($walkinPayments)]
-                : $onlinePayments[array_rand($onlinePayments)];
-
-            $deliveryDate = Carbon::create(2026, rand(1,12), rand(1,28));
-
-            $order = Order::create([
-
-                'customer_name' => fake()->name(),
-
-                'phone' => fake()->numerify('9#########'),
-
-                'email' => fake()->safeEmail(),
-
-                'delivery_date' => $deliveryDate,
-
-                'status' => $statuses[array_rand($statuses)],
-
-                'payment_method' => $paymentMethod,
-
-                'order_source' => $orderSource,
-
-                'total_amount' => 0,
-
-                'created_at' => Carbon::create(2026, rand(1,12), rand(1,28)),
-
-                'updated_at' => now()
-
-            ]);
-
-            $total = 0;
-
-            $randomProducts = $products->random(rand(1,4));
-
-            foreach ($randomProducts as $product) {
-
-                $qty = rand(1,3);
-
-                $price = $product->price;
-
-                $subtotal = $qty * $price;
-
-                $total += $subtotal;
-
-                $order->items()->create([
-
-                    'product_id' => $product->id,
-                    'quantity' => $qty,
-                    'price' => $price,
-                    'subtotal' => $subtotal
-
+                // Apply discount randomly
+                $discount = $faker->optional(0.3, 0)->randomFloat(2, 0, 500);
+                $order->update([
+                    'total_amount' => $orderTotal - $discount,
+                    'discount_amount' => $discount,
                 ]);
             }
-
-            $order->update([
-                'total_amount' => $total
-            ]);
         }
+
+        $this->command->info('Additional orders seeded successfully.');
     }
 }

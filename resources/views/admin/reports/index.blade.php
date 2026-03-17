@@ -47,6 +47,31 @@
         </div>
     </div>
 
+    <!-- Customer Selector (hidden by default) -->
+    <div id="customer-selector" class="card border-0 shadow-sm mb-4 d-none">
+        <div class="card-body p-4">
+            <div class="row align-items-end">
+                <div class="col-md-8">
+                    <label class="form-label fw-bold small text-uppercase" style="color: var(--gold);">Select Customer</label>
+                    <select id="customer_id" class="form-select">
+                        <option value="">-- Choose a customer --</option>
+                        @foreach($customers as $customer)
+                            <option value="{{ $customer->id }}">{{ $customer->name }} ({{ $customer->email }})</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button onclick="loadCustomerHistory()" class="btn btn-gold w-100 mt-3 mt-md-0">
+                        <i class="fas fa-search me-2"></i> Load History
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden field to store selected customer ID for export -->
+    <input type="hidden" id="selected_customer_id" value="">
+
     <!-- Tabs Navigation -->
     <ul class="nav nav-tabs mb-4" id="reportTabs" role="tablist">
         <li class="nav-item" role="presentation">
@@ -228,17 +253,10 @@
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center py-3">
                 <h4 class="serif mb-0" id="report-title">Report</h4>
-            <div class="report-actions">
-
-            <a href="{{ url('/admin/reports/export/pdf') }}" class="btn btn-danger">
-            PDF
-            </a>
-
-            <a href="{{ url('/admin/reports/export/excel') }}" class="btn btn-success">
-            Excel
-            </a>
-
-            </div>
+                <div class="report-actions">
+                    <button onclick="exportReport('pdf')" class="btn btn-danger">PDF</button>
+                    <button onclick="exportReport('excel')" class="btn btn-success">Excel</button>
+                </div>
             </div>
             <div class="card-body" id="report-content">
                 <div class="text-center py-5 text-muted">
@@ -255,6 +273,7 @@
 @push('scripts')
 <script>
 let currentReportType = null;
+let selectedCustomerId = null;
 
 function quickDate(period) {
     const today = new Date();
@@ -286,6 +305,10 @@ function quickDate(period) {
 
     document.getElementById('start_date').value = startDate;
     document.getElementById('end_date').value = endDate;
+    
+    if (currentReportType) {
+        generateReport(currentReportType);
+    }
 }
 
 function formatDate(date) {
@@ -300,7 +323,6 @@ function applyDateRange() {
 
 async function generateReport(reportType) {
     currentReportType = reportType;
-
     const startDate = document.getElementById('start_date').value;
     const endDate = document.getElementById('end_date').value;
 
@@ -309,6 +331,40 @@ async function generateReport(reportType) {
         return;
     }
 
+    // Hide customer selector for non-history reports
+    if (reportType !== 'customer-history') {
+        document.getElementById('customer-selector').classList.add('d-none');
+        // For other reports, proceed normally
+        await fetchReport(reportType, startDate, endDate);
+    } else {
+        // Show customer selector and stop; user must select a customer
+        document.getElementById('customer-selector').classList.remove('d-none');
+        document.getElementById('report-output').classList.remove('d-none');
+        document.getElementById('report-title').innerText = 'Customer Order History';
+        document.getElementById('report-content').innerHTML = `
+            <div class="text-center py-5">
+                <i class="fas fa-user fa-3x mb-3 text-muted"></i>
+                <p class="h5">Please select a customer from the dropdown above.</p>
+                <p class="small">Then click "Load History".</p>
+            </div>
+        `;
+    }
+}
+
+async function loadCustomerHistory() {
+    const customerId = document.getElementById('customer_id').value;
+    if (!customerId) {
+        alert('Please select a customer');
+        return;
+    }
+    selectedCustomerId = customerId;
+    document.getElementById('selected_customer_id').value = customerId; // store for export
+    const startDate = document.getElementById('start_date').value;
+    const endDate = document.getElementById('end_date').value;
+    await fetchReport('customer-history', startDate, endDate, customerId);
+}
+
+async function fetchReport(reportType, startDate, endDate, customerId = null) {
     document.getElementById('loading').classList.remove('d-none');
     document.getElementById('report-output').classList.remove('d-none');
 
@@ -339,7 +395,10 @@ async function generateReport(reportType) {
     document.getElementById('report-title').innerText = titles[reportType] || 'Report';
 
     try {
-        const url = `/admin/reports/${reportType}?start_date=${startDate}&end_date=${endDate}`;
+        let url = `/admin/reports/${reportType}?start_date=${startDate}&end_date=${endDate}`;
+        if (customerId) {
+            url += `&customer_id=${customerId}`;
+        }
         const response = await fetch(url);
 
         if (!response.ok) {
@@ -349,7 +408,8 @@ async function generateReport(reportType) {
         const result = await response.json();
 
         if (result.success) {
-            displayReportData(reportType, result.data);
+            const reportData = result.data || {};
+            displayReportData(reportType, reportData);
         } else {
             throw new Error(result.message || 'Failed to generate report');
         }
@@ -441,6 +501,8 @@ function displayReportData(reportType, data) {
     document.getElementById('report-content').innerHTML = html;
 }
 
+// ==================== Display Functions ====================
+
 function displayDailySales(data) {
     return `
         <div class="row g-4 mb-4">
@@ -518,8 +580,46 @@ function displayOrderType(data) {
     `;
 }
 
-function displayDeliveryOrders(data) { return `<pre>${JSON.stringify(data, null, 2)}</pre>`; }
-function displayPickupOrders(data) { return `<pre>${JSON.stringify(data, null, 2)}</pre>`; }
+function displayDeliveryOrders(data) {
+    if (!data || !data.length) {
+        return '<p class="text-center">No delivery orders found.</p>';
+    }
+    let html = '<div class="table-responsive"><table class="table table-sm table-bordered">';
+    html += '<thead class="table-light"><tr><th>Order ID</th><th>Customer</th><th>Address</th><th>Delivery Date</th><th>Slot</th><th>Status</th><th class="text-end">Amount</th></tr></thead><tbody>';
+    data.forEach(o => {
+        html += `<tr>
+            <td>#${o.id}</td>
+            <td>${o.name || ''}</td>
+            <td>${o.address || ''}</td>
+            <td>${o.delivery_date ? o.delivery_date.split('T')[0] : ''}</td>
+            <td>${o.delivery_slot || ''}</td>
+            <td><span class="badge bg-${o.status === 'pending' ? 'warning' : o.status === 'processing' ? 'info' : 'success'}">${o.status}</span></td>
+            <td class="text-end text-gold fw-bold">₹${Number(o.total_amount).toLocaleString()}</td>
+        </tr>`;
+    });
+    html += '</tbody></table></div>';
+    return html;
+}
+
+function displayPickupOrders(data) {
+    if (!data || !data.length) {
+        return '<p class="text-center">No pickup orders found.</p>';
+    }
+    let html = '<div class="table-responsive"><table class="table table-sm table-bordered">';
+    html += '<thead class="table-light"><tr><th>Order ID</th><th>Customer</th><th>Pickup Date</th><th>Slot</th><th>Status</th><th class="text-end">Amount</th></tr></thead><tbody>';
+    data.forEach(o => {
+        html += `<tr>
+            <td>#${o.id}</td>
+            <td>${o.name || ''}</td>
+            <td>${o.pickup_date ? o.pickup_date.split('T')[0] : ''}</td>
+            <td>${o.pickup_slot || ''}</td>
+            <td><span class="badge bg-${o.status === 'pending' ? 'warning' : o.status === 'processing' ? 'info' : 'success'}">${o.status}</span></td>
+            <td class="text-end text-gold fw-bold">₹${Number(o.total_amount).toLocaleString()}</td>
+        </tr>`;
+    });
+    html += '</tbody></table></div>';
+    return html;
+}
 
 function displayTopCustomers(data) {
     if (!data.length) return '<p class="text-center">No customers</p>';
@@ -527,15 +627,40 @@ function displayTopCustomers(data) {
 }
 
 function displayCustomerHistory(data) {
+    if (!data || !data.customer) {
+        return `
+            <div class="text-center py-5">
+                <i class="fas fa-user fa-3x mb-3 text-muted"></i>
+                <p class="h5">${data?.message || 'Please select a customer to view history.'}</p>
+                <p class="small">Use the customer selector above to choose a customer.</p>
+            </div>
+        `;
+    }
     return `
-        <div class="bg-light p-3 rounded mb-4"><h6>Customer: ${data.customer.name}</h6><p class="mb-1">Email: ${data.customer.email} | Phone: ${data.customer.phone} | Member since: ${data.customer.member_since}</p></div>
+        <div class="bg-light p-3 rounded mb-4">
+            <h6>Customer: ${data.customer.name}</h6>
+            <p class="mb-1">Email: ${data.customer.email} | Phone: ${data.customer.phone || 'N/A'} | Member since: ${data.customer.member_since}</p>
+        </div>
         <div class="row g-3 mb-4">
             <div class="col-md-4"><div class="bg-light p-3 rounded text-center"><small>Orders</small><h4>${data.summary.total_orders}</h4></div></div>
             <div class="col-md-4"><div class="bg-light p-3 rounded text-center"><small>Spent</small><h4 class="text-gold">₹${data.summary.total_spent.toLocaleString()}</h4></div></div>
             <div class="col-md-4"><div class="bg-light p-3 rounded text-center"><small>Avg</small><h4>₹${data.summary.average_order.toLocaleString()}</h4></div></div>
         </div>
         <h6>Order History</h6>
-        <table class="table table-sm table-bordered"><thead class="table-light"><tr><th>Order #</th><th>Date</th><th class="text-end">Amount</th><th>Status</th><th>Payment</th></tr></thead><tbody>${data.orders.map(o => `<tr><td>${o.order_number}</td><td>${o.date}</td><td class="text-end text-gold fw-bold">₹${o.total.toLocaleString()}</td><td><span class="badge bg-${o.status === 'pending' ? 'warning' : o.status === 'processing' ? 'info' : 'success'}">${o.status}</span></td><td>${o.payment_method}</td></tr>`).join('')}</tbody></table>
+        <table class="table table-sm table-bordered">
+            <thead class="table-light">
+                <tr><th>Order #</th><th>Date</th><th class="text-end">Amount</th><th>Status</th><th>Payment</th></tr>
+            </thead>
+            <tbody>
+                ${data.orders.map(o => `<tr>
+                    <td>${o.order_number}</td>
+                    <td>${o.date}</td>
+                    <td class="text-end text-gold fw-bold">₹${o.total.toLocaleString()}</td>
+                    <td><span class="badge bg-${o.status === 'pending' ? 'warning' : o.status === 'processing' ? 'info' : 'success'}">${o.status}</span></td>
+                    <td>${o.payment_method}</td>
+                </tr>`).join('')}
+            </tbody>
+        </table>
     `;
 }
 
@@ -649,7 +774,15 @@ async function exportReport(format) {
     }
     const startDate = document.getElementById('start_date').value;
     const endDate = document.getElementById('end_date').value;
-    window.open(`{{ url('admin/reports/export-${format}') }}?report_type=${currentReportType}&start_date=${startDate}&end_date=${endDate}`, '_blank');
+    let url = `{{ url("admin/reports/export") }}/${format}?report_type=${currentReportType}&start_date=${startDate}&end_date=${endDate}`;
+    if (currentReportType === 'customer-history') {
+        // Use the hidden field value which is set when customer is selected
+        const custId = document.getElementById('selected_customer_id').value;
+        if (custId) {
+            url += `&customer_id=${custId}`;
+        }
+    }
+    window.open(url, '_blank');
 }
 </script>
 @endpush

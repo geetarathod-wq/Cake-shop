@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 class ProductFactory extends Factory
 {
@@ -12,15 +13,21 @@ class ProductFactory extends Factory
 
     public function definition()
     {
+        $categoryId = Category::inRandomOrder()->first()->id ?? Category::factory()->create()->id;
+        $name = fake()->unique()->words(3, true);
+        
         return [
-            'name' => fake()->words(3, true),
-            'slug' => fake()->unique()->slug(3),
-            'description' => fake()->paragraph(),
-            'price' => fake()->randomFloat(2, 100, 2000),
-            'stock' => fake()->numberBetween(0, 100),
-            'category_id' => Category::inRandomOrder()->first()->id ?? 1,
-            'image' => fake()->imageUrl(),
-            'created_at' => fake()->dateTimeBetween('-1 year', 'now'),
+            'name' => $name,
+            'slug' => Str::slug($name),
+            'description' => fake()->optional()->paragraph(),
+            'egg_type' => fake()->randomElement(['eggless', 'with_egg']),
+            'price' => fake()->randomFloat(2, 100, 5000),
+            'cost' => fake()->optional(0.8)->randomFloat(2, 50, 4000),
+            'image' => 'products/' . fake()->uuid() . '.jpg',
+            'is_active' => fake()->boolean(90),
+            // 'is_fe' => fake()->boolean(20), // REMOVED
+            'category_id' => $categoryId,
+            'created_at' => now(),
             'updated_at' => now(),
         ];
     }
